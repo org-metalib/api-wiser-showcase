@@ -1,19 +1,23 @@
-# Redocly Museum API with API Wiser
+# API Wiser Showcase: Redocly Museum API
 
-Redocly has a simple [Museum](https://redocly.com/demo/openapi/museum-api) openapi 3.1.0 we can use in our showcase.
+This project showcases the capabilities of **API Wiser**, a tool designed to accelerate API development by generating a structured, multi-module Maven project directly from an OpenAPI specification. In this showcase, we will use Redocly's [Museum API](https://redocly.com/demo/openapi/museum-api) (OpenAPI 3.1.0) to demonstrate how to generate a project, implement business logic, and expose it as a Spring Boot application.
+
+To learn more about the core project, visit the [API Wiser repository](https://github.com/org-metalib/api-wiser).
 
 ## Prerequisites
 
-1. Java Development Kit (JDK): Ensure the JDK is installed and configured, as Maven requires it to run.
-2. Apache Maven Installed: Ensure Maven is installed and properly configured on your system. You can verify this by running mvn -v in the terminal.  
-3. OpenAPI Specification File: The -Dopenapi parameter requires a valid OpenAPI specification file ([api/api-wiser-museum.yaml](api/api-wiser-museum.yaml) in this case).  
-4. Internet Access: Maven may need to download dependencies and the archetype from a remote repository.  
-5. Write Permissions: Ensure you have write permissions in the directory where the command is executed, as it will generate files there.
-6. Intellij IDEA installed with configured cmd `idea` configured.
+Before you begin, ensure you have the following installed and configured on your system:
 
-## Generate maven project
+1. **Java Development Kit (JDK):** Required by Maven to build the project.
+2. **Apache Maven:** The build automation tool for this project. You can verify your installation by running `mvn -v`.
+3. **IntelliJ IDEA:** An integrated development environment (IDE). We will use the command-line launcher `idea`.
+4. **Internet Access:** Maven requires internet access to download project dependencies.
+5. **Write Permissions:** Ensure you have write permissions in your target directory.
 
-With openapi spec [api-wiser-museum.yaml](api/api-wiser-museum.yaml) in place, run the following `archetype:generate`: 
+## 1\. Generate the Maven Project
+
+With the [api-wiser-museum.yaml](api/api-wiser-museum.yaml) OpenAPI specification in place, run the following command to generate the project structure using the API Wiser Maven archetype:
+
 ```shell
 mvn archetype:generate -B \
   -DarchetypeGroupId=org.metalib.api.wiser \
@@ -25,89 +29,100 @@ mvn archetype:generate -B \
   -Dversion=0.0.1-SNAPSHOT
 ```
 
-It generates a Maven project structure for the Redocly Museum API openapi spec. The output includes:
-* A multi-module Maven project with the following modules:
-  * `api-wiser-museum-model`: Contains the data models for the Museum API.
-  * `api-wiser-museum-api`: Contains the API definitions and OpenAPI specification.
-  * `api-wiser-museum-biz`: Contains business logic for the API.
+This command generates a multi-module Maven project with a clean separation of concerns:
+
+* `api-wiser-museum-model`: Contains the Java data models generated from the OpenAPI schema.
+* `api-wiser-museum-api`: Contains the Java interfaces for the API.
+* `api-wiser-museum-biz`: A skeleton module for implementing the business logic of the API.
+
+Here is a visual representation of the generated modules:
 
 ```mermaid
 flowchart TB
-  model[api-wiser-museum-model]
-  api[api-wiser-museum-api]
-  biz[api-wiser-museum-biz]
+  subgraph Core Modules
+    model[api-wiser-museum-model]
+    api[api-wiser-museum-api]
+    biz[api-wiser-museum-biz]
+  end
 
   biz -->| implements | api
   api -->| uses | model
 ```
 
-Run maven's `initialize` goal for `api-wiser` to add the final configuration to the generated module `pom.xml`
+Next, navigate into the newly created project directory and run Maven's `initialize` goal. This step is crucial as it allows API Wiser to apply final configurations to the `pom.xml` files.
+
 ```shell
 cd api-wiser-museum
 mvn initialize
 ```
 
-Implement the `getMuseumHours` business logic in [MuseumHoursBiz.java](api-wiser-museum/api-wiser-museum-biz/src/main/java/org/metalib/api/demo/showcase/museum/biz/MuseumHoursBiz.java):
+## 2\. Implement the Business Logic
+
+Now, let's add the business logic for the `getMuseumHours` endpoint. Open the following file: `api-wiser-museum/api-wiser-museum-biz/src/main/java/org/metalib/api/demo/showcase/museum/biz/MuseumHoursBiz.java`
+
+And add the following implementation to the `getMuseumHours` method:
+
 ```java
-  @Override
-  public List<MuseumDailyHours> getMuseumHours(LocalDate startDate, Integer page, Integer limit) {
-    return List.of(MuseumDailyHours.builder()
-            .date(startDate)
-            .timeOpen("08:00am")
-            .timeClose("6:00pm")
-            .build());
-  }
+@Override
+public List<MuseumDailyHours> getMuseumHours(LocalDate startDate, Integer page, Integer limit) {
+  return List.of(MuseumDailyHours.builder()
+          .date(startDate)
+          .timeOpen("08:00am")
+          .timeClose("6:00pm")
+          .build());
+}
 ```
 
-Build the project:
+With the business logic in place, build the project:
+
 ```shell
-cd api-wiser-museum
 mvn clean install
 ```
 
-## Open generated project with IntelliJ Idea  
+## 3\. Expose the API with Spring Boot
 
-If you have the idea command is installed and configured in the system path 
-(as mentioned in the prerequisites), you can simply run:
+So far, we have mapped our OpenAPI specification to a set of core modules. Now, let's expose our API over HTTP using the API Wiser Spring App template.
+
+Run the following commands to add the Spring Boot module to your project.
+
 ```shell
-idea api-wiser-museum 
-```
-
-## Spring Application Api Wiser template
-
-So far we mapped our OpenAPI specification to three modules. We can expose it providing HTTP 
-access through the special API Wiser Spring App
-
-The following command adds the template as a dependency for api-wiser plugin in the project's `pom.xml`.
-```shell
-cd api-wiser-museum
 mvn api:templates -Dapi-wiser.templates='api-wiser-spring-app-templates'
 mvn initialize
 mvn initialize
 ```
-API Wiser `api:templates` goal adds the `api-wiser-spring-app-templates` template to the root module, the first
-`initialize` goal creates and adds the `api-wiser-museum-spring-app` module to the `pom.xml`, and, finally,
-the last `initialize` triggers API Wiser to add the module configuration to the `pom.xml`.
 
-We just added spring boot module to the maven project. So we can even start it:
+* The `api:templates` goal adds the `api-wiser-spring-app-templates` template as a dependency.
+* The subsequent `initialize` goals create and configure the `api-wiser-museum-spring-app` module in your `pom.xml`.
+
+You now have a runnable Spring Boot application\! To start the server, run:
+
 ```shell
-cd api-wiser-museum/api-wiser-museum-spring-app
+cd api-wiser-museum-spring-app
 mvn spring-boot:run
 ```
 
-## Http Clients
+Your API is now available at `http://localhost:8080`.
 
-To complete the picture we are adding two client implementing our Museum API to call the service via HTTP protocol.  
+## 4\. Generate HTTP Clients
+
+To complete our project, let's generate two client implementations for our Museum API. These clients will allow other services to communicate with our new API.
+
 ```shell
-cd api-wiser-museum
+cd ..
 mvn api:templates -Dapi-wiser.templates='api-wiser-spring-webclient-template,api-wiser-http-client-templates'
 mvn initialize
 mvn initialize
 ```
 
-## Testing Spring Webclient
+This will add two new client modules to your project:
 
-Add spring boot test dependency in [api-wiser-museum-spring-webclient](api-wiser-museum/api-wiser-museum-spring-webclient/pom.xml)
+* `api-wiser-museum-spring-webclient`
+* `api-wiser-museum-http-client`
+
+## 5\. Test the Spring WebClient
+
+Let's add an integration test to verify our `WebClient` implementation. First, add the Spring Boot test starter dependency to `api-wiser-museum/api-wiser-museum-spring-webclient/pom.xml`:
+
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -116,16 +131,16 @@ Add spring boot test dependency in [api-wiser-museum-spring-webclient](api-wiser
 </dependency>
 ```
 
-Build the maven project
+Next, build the project to include the new dependency:
+
 ```shell
-cd api-wiser-museum
 mvn clean install
 ```
 
+Finally, create and run an integration test. The following script will create a test file for you:
 
-Add an integration test unit:
 ```shell
-TEST_CLASS_DIR=api-wiser-museum/api-wiser-museum-spring-webclient/src/test/java/org/metalib/api/demo/showcase/museum/spring/webclient
+TEST_CLASS_DIR=api-wiser-museum-spring-webclient/src/test/java/org/metalib/api/demo/showcase/museum/spring/webclient
 mkdir -p $TEST_CLASS_DIR
 cat << EOF > $TEST_CLASS_DIR/MuseumHoursSpringWebclientTest.java
 package org.metalib.api.demo.showcase.museum.spring.webclient;
@@ -142,6 +157,7 @@ class MuseumHoursSpringWebclientTest {
 
     @Test
     void getMuseumHours() {
+        // Make sure your Spring Boot application is running before executing this test
         final var result = new MuseumHoursSpringWebclient(webClient).getMuseumHours(LocalDate.now(), 1, 10);
         assertNotNull(result);
     }
@@ -149,46 +165,54 @@ class MuseumHoursSpringWebclientTest {
 EOF
 ```
 
-We can run the test in the IDE:
-```shell
-idea api-wiser-museum 
-```
+You can now open the project in IntelliJ IDEA and run the test.
 
+```shell
+idea .
+```
 
 ## Summary
 
-At the end of the day API Wiser generated three types of modules:
+By following these steps, API Wiser has generated a complete, production-ready application with a clean, decoupled architecture.
 
-Core components:
-* `api-wiser-museum-model`: Base data models
-* `api-wiser-museum-api`: API definitions that use the model
-* `api-wiser-museum-biz`: Business logic implementation of the API
+**Core Components:**
 
-Client implementations:
-* `api-wiser-museum-spring-webclient`: Spring WebClient implementation
-* `api-wiser-museum-http-client`: Java HTTP client implementation Both client components implement the API interfaces
+* `api-wiser-museum-model`: Defines the data structures.
+* `api-wiser-museum-api`: Defines the API contracts (Java interfaces).
+* `api-wiser-museum-biz`: Implements the API contracts with business logic.
 
-Server application:
-* `api-wiser-spring-app`: Spring Boot application that serves the API by calling the business logic implementation
+**Client Implementations:**
 
-The architecture follows a clean separation of concerns where:  
-* Model defines the data structures
-* API defines the contracts
-* Multiple client implementations can consume the API
-* Business logic implements the API contracts
-* Spring application exposes the API via HTTP endpoints
+* `api-wiser-museum-spring-webclient`: A Spring `WebClient` implementation of the API.
+* `api-wiser-museum-http-client`: A standard Java `HTTP-Client` implementation of the API.
+
+**Server Application:**
+
+* `api-wiser-spring-app`: A Spring Boot application that serves the API by connecting the endpoints to the business logic.
+
+This architecture promotes a clean separation of concerns, making the application easier to maintain, test, and scale.
 
 ```mermaid
-flowchart TB
-  model[api-wiser-museum-model]
-  api[api-wiser-museum-api]
-  biz[api-wiser-museum-biz]
-  http-client[api-wiser-museum-http-client]
-  spring-webclient[api-wiser-museum-spring-webclient]
+flowchart TD
+  subgraph "Server"
+    direction LR
+    spring-app[api-wiser-spring-app]
+  end
+  subgraph "Clients"
+    direction LR
+    http-client[api-wiser-museum-http-client]
+    spring-webclient[api-wiser-museum-spring-webclient]
+  end
+  subgraph "Core API"
+    direction LR
+    biz[api-wiser-museum-biz]
+    api[api-wiser-museum-api]
+    model[api-wiser-museum-model]
+  end
 
+  spring-app -->| calls | biz
+  biz -->| implements | api
+  http-client -->| implements | api
   spring-webclient -->| implements | api
-  http-client      -->| implements | api
-  biz              -->| implements | api
   api -->| uses | model
-  api-wiser-spring-app -->|calls| biz    
 ```
