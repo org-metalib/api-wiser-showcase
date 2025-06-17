@@ -160,6 +160,7 @@ class MuseumHoursSpringWebclientTest {
     static WebClient webClient = WebClient.create("http://localhost:8080");
 
     @Test
+    @Disabled("This test requires a running instance of the API")
     void getMuseumHours() {
         // Make sure your Spring Boot application is running before executing this test
         final var result = new MuseumHoursSpringWebclient(webClient).getMuseumHours(LocalDate.now(), 1, 10);
