@@ -58,9 +58,9 @@ mvn initialize
 
 ## 2\. Implement the Business Logic
 
-Now, let's add the business logic for the `getMuseumHours` endpoint. Open the following file: `api-wiser-museum/api-wiser-museum-biz/src/main/java/org/metalib/api/demo/showcase/museum/biz/MuseumHoursBiz.java`
-
-And add the following implementation to the `getMuseumHours` method:
+Now, let's add the business logic for the `getMuseumHours` endpoint. Open the following file: 
+[MuseumHoursBiz.java](api-wiser-museum/api-wiser-museum-biz/src/main/java/org/metalib/api/demo/showcase/museum/biz/MuseumHoursBiz.java)
+and add the following implementation to the `getMuseumHours` method:
 
 ```java
 @Override
@@ -76,6 +76,7 @@ public List<MuseumDailyHours> getMuseumHours(LocalDate startDate, Integer page, 
 With the business logic in place, build the project:
 
 ```shell
+cd api-wiser-museum
 mvn clean install
 ```
 
@@ -86,6 +87,7 @@ So far, we have mapped our OpenAPI specification to a set of core modules. Now, 
 Run the following commands to add the Spring Boot module to your project.
 
 ```shell
+cd api-wiser-museum
 mvn api:templates -Dapi-wiser.templates='api-wiser-spring-app-templates'
 mvn initialize
 mvn initialize
@@ -97,7 +99,7 @@ mvn initialize
 You now have a runnable Spring Boot application\! To start the server, run:
 
 ```shell
-cd api-wiser-museum-spring-app
+cd api-wiser-museum/api-wiser-museum-spring-app
 mvn spring-boot:run
 ```
 
@@ -108,7 +110,7 @@ Your API is now available at `http://localhost:8080`.
 To complete our project, let's generate two client implementations for our Museum API. These clients will allow other services to communicate with our new API.
 
 ```shell
-cd ..
+cd api-wiser-museum
 mvn api:templates -Dapi-wiser.templates='api-wiser-spring-webclient-template,api-wiser-http-client-templates'
 mvn initialize
 mvn initialize
@@ -121,7 +123,8 @@ This will add two new client modules to your project:
 
 ## 5\. Test the Spring WebClient
 
-Let's add an integration test to verify our `WebClient` implementation. First, add the Spring Boot test starter dependency to `api-wiser-museum/api-wiser-museum-spring-webclient/pom.xml`:
+Let's add an integration test to verify our `WebClient` implementation. First, add the Spring Boot test starter dependency to 
+[pom.xml](api-wiser-museum/api-wiser-museum-spring-webclient/pom.xml)
 
 ```xml
 <dependency>
@@ -134,13 +137,14 @@ Let's add an integration test to verify our `WebClient` implementation. First, a
 Next, build the project to include the new dependency:
 
 ```shell
+cd api-wiser-museum
 mvn clean install
 ```
 
 Finally, create and run an integration test. The following script will create a test file for you:
 
 ```shell
-TEST_CLASS_DIR=api-wiser-museum-spring-webclient/src/test/java/org/metalib/api/demo/showcase/museum/spring/webclient
+TEST_CLASS_DIR=api-wiser-museum/api-wiser-museum-spring-webclient/src/test/java/org/metalib/api/demo/showcase/museum/spring/webclient
 mkdir -p $TEST_CLASS_DIR
 cat << EOF > $TEST_CLASS_DIR/MuseumHoursSpringWebclientTest.java
 package org.metalib.api.demo.showcase.museum.spring.webclient;
@@ -168,7 +172,7 @@ EOF
 You can now open the project in IntelliJ IDEA and run the test.
 
 ```shell
-idea .
+idea api-wiser-museum
 ```
 
 ## Summary
